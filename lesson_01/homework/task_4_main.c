@@ -1,3 +1,4 @@
+//https://github.com/Stormcoder74/Algoritms-and-structures.git
 #include <stdio.h>
 
 long const X = 7;

@@ -10,7 +10,7 @@ int main() {
         arr[i] = 1;
     }
 
-    int time1 = (int) clock ();
+    int time1 = (int) clock();
 
     for (int i = 2; i * i < N; i++) {
         if (arr[i] == 1) {

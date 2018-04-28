@@ -1,30 +1,65 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 int const GOAL = 20;
 int const START = 3;
 
-void toBin(int x, int *start, int goal) {
+int find(int x, int *signs, int *start, char *oper) {
     if (x / 2) {
-        toBin(x / 2, start, goal);
+        *signs = *signs - 1;
+        int result = find(x / 2, signs, start, oper);
+        if (result == 1) return 1;
+        if (result == -1) return -1;
     }
-    printf("%d", x % 2);
+    for (int i = 1; i < *signs; ++i) {
+//        printf("%d", 0);
+        strcat(oper, "0");
+        *start = *start + 1;
+        if (*start == GOAL) return 1;
+        if (*start > GOAL) return -1;
+
+    }
+//    printf("%d", x % 2);
     if (x % 2) {
-        *start *= 2;
-    } else {
-        *start += 1;
-    }
+        strcat(oper, "1");
+    } else
+        strcat(oper, "0");
+    if (x % 2)
+        *start = *start * 2;
+    else
+        *start = *start + 1;
+    if (*start == GOAL) return 1;
+    if (*start > GOAL) return -1;
+    *signs = 0;
+    return 0;
 }
 
 int main() {
-    for (int c = 1; c < 5; c++) {
-        int signs = pow(2, c);
-        for (int i = 0; i < signs; i++) {
-            int start = START;
-            toBin(i, &start, GOAL);
-            printf(" %d\n", start);
+    int counter = 0;
+    char *operations[1000];
+    for (int length = 1; length < GOAL - 3; length++) {
+        for (int i = 0; i < pow(2, length); i++) {
+            int l = length;
+            int s = START;
+            char oper[20] = "";
+            if (find(i, &l, &s, oper) == 1) {
+                int no = 1;
+                for (int i = 0; i < counter; i++) {
+                    if (strcmp(oper, operations[i]) == 0) {
+                        no = 0;
+                        break;
+                    }
+                }
+                if(no){
+                    operations[counter] = oper;
+                    counter++;
+                }
+            }
+//            printf(" %d\n", s);
         }
-        printf("\n");
+//        printf("\n");
     }
+    printf("%d", counter);
     return 0;
 }

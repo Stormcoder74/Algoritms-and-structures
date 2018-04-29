@@ -37,8 +37,11 @@ int find(int x, int *signs, int *start, char *oper) {
 
 int main() {
     int counter = 0;
-    char *operations[1000];
-    for (int length = 1; length < GOAL - 3; length++) {
+    char *operations[100][20];
+    for (int j = 0; j < 100; ++j) {
+        *operations[j]="";
+    }
+    for (int length = 4; length < GOAL - 3 +1; length++) {
         for (int i = 0; i < pow(2, length); i++) {
             int l = length;
             int s = START;
@@ -52,7 +55,7 @@ int main() {
                     }
                 }
                 if(no){
-                    operations[counter] = oper;
+                    strcpy(operations[counter], oper);
                     counter++;
                 }
             }
@@ -60,6 +63,9 @@ int main() {
         }
 //        printf("\n");
     }
-    printf("%d", counter);
+    printf("%d\n\n", counter);
+    for (int k = 0; k < counter; ++k) {
+        printf("%s\n", operations[k]);
+    }
     return 0;
 }

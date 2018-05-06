@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#define SIZE 8
+#define SIZE 6 // 8 считает очень долго
 int moves[8][2] = {{1,  -2}, {2,  -1}, {2,  1}, {1,  2},
                    {-1, 2}, {-2, 1}, {-2, -1}, {-1, -2}};
 int board[SIZE][SIZE] = {{0}, {0}, {0}, {0},

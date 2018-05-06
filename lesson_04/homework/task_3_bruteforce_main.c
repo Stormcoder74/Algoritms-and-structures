@@ -1,4 +1,5 @@
 //https://github.com/Stormcoder74/Algoritms-and-structures.git
+// решение полным перебором методом поиска с возвратом
 #include <stdio.h>
 #include <time.h>
 

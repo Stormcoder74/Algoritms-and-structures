@@ -2,67 +2,53 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include <string.h>
 
-typedef int T;
+typedef struct Student {
+    char name[128];
+    int age;
+    int number;
+} Student;
+
 typedef struct Node {
-    T data;
+    Student *student;
     struct Node *left;
     struct Node *right;
     struct Node *parent;
 } Node;
 
-// Распечатка двоичного дерева в виде скобочной записи
-void printTree(Node *root) {
-    if (root) {
-        printf("%d", root->data);
-        if (root->left || root->right) {
-            printf("(");
-            if (root->left)
-                printTree(root->left);
-            else
-                printf("NULL");
-            printf(",");
-            if (root->right)
-                printTree(root->right);
-            else
-                printf("NULL");
-            printf(")");
-        }
-    }
-}
-
 // Создание нового узла
-Node *getFreeNode(T value, Node *parent) {
+Node *getFreeNode(Student *student, Node *parent) {
     Node *tmp = (Node *) malloc(sizeof(Node));
     tmp->left = tmp->right = NULL;
-    tmp->data = value;
+    tmp->student = student;
     tmp->parent = parent;
     return tmp;
 }
 
 // Вставка узла
-void insert(Node **head, int value) {
+void insert(Node **head, Student *student) {
     Node *tmp = NULL;
     if (*head == NULL) {
-        *head = getFreeNode(value, NULL);
+        *head = getFreeNode(student, NULL);
         return;
     }
     tmp = *head;
     while (tmp) {
-        if (value > tmp->data) {
+        if (student->number > tmp->student->number) {
             if (tmp->right) {
                 tmp = tmp->right;
                 continue;
             } else {
-                tmp->right = getFreeNode(value, tmp);
+                tmp->right = getFreeNode(student, tmp);
                 return;
             }
-        } else if (value < tmp->data) {
+        } else if (student->number < tmp->student->number) {
             if (tmp->left) {
                 tmp = tmp->left;
                 continue;
             } else {
-                tmp->left = getFreeNode(value, tmp);
+                tmp->left = getFreeNode(student, tmp);
                 return;
             }
         } else {
@@ -71,48 +57,30 @@ void insert(Node **head, int value) {
     }
 }
 
-// КЛП — «корень–левый–правый» (обход в прямом порядке, pre-order)
-void preOrderTravers(Node *root) {
-    if (root) {
-        printf("%d ", root->data);
-        preOrderTravers(root->left);
-        preOrderTravers(root->right);
-    }
-}
+void printStudent(Student *student){
 
-// ЛКП — «левый–корень–правый» (симметричный обход, in-order)
-void inOrderTravers(Node *root) {
-    if (root) {
-        inOrderTravers(root->left);
-        printf("%d ", root->data);
-        inOrderTravers(root->right);
-    }
-}
-
-// ЛПК — «левый–правый–корень» (обход в обратном порядке, post-order)
-void postOrderTravers(Node *root) {
-    if (root) {
-        postOrderTravers(root->left);
-        postOrderTravers(root->right);
-        printf("%d ", root->data);
-    }
 }
 
 // поиск в двоичном дереве поиска
-int find(Node *root, T data) {
+Student *find(Node *root, int number) {
     if (root) {
-        if (data == root->data) return 1;
-        if(data < root->data)
-            if(find(root->left, data)) return 1;
-        if(data > root->data)
-            if(find(root->right, data)) return 1;
+        if (number == root->student->number) return root->student;
+        if (number < root->student->number) {
+            Student *student = find(root->left, number);
+            if (student) return student;
+        }
+        if (number > root->student->number) {
+            Student *student = find(root->right, number);
+            if (student) return student;
+        }
     }
-    return  0;
+
+    return NULL;
 }
 
 int main() {
     Node *tree = NULL;
-    FILE *file = fopen("data.txt", "r");
+    FILE *file = fopen("database.txt", "r");
     if (file == NULL) {
         puts("Can't open file!");
         exit(1);
@@ -122,21 +90,15 @@ int main() {
     int i;
     for (i = 0; i < count; i++) {
         char name[64] = "";
-        int value;
-        fscanf(file, "%d", &value);
-        insert(&tree, value);
+        Student *student = (Student *) malloc(sizeof(Student));
+        fscanf(file, "%s", student->name);
+        fscanf(file, "%i", &student->age);
+        fscanf(file, "%i", &student->number);
+        insert(&tree, student);
     }
     fclose(file);
-    printTree(tree);
-    printf("\nPreOrderTravers:");
-    preOrderTravers(tree);
-    printf("\nInOrderTravers:");
-    inOrderTravers(tree);
-    printf("\nPostOrderTravers:");
-    postOrderTravers(tree);
 
-    printf("\n\nFind 3: %d", find(tree, 3));
-    printf("\nFind 9: %d", find(tree, 9));
-    printf("\nFind 13: %d", find(tree, 13));
+    Student *st = find(tree, 4659);
+    printf("\n\nStudent %s, %d, %d, student->name, student->age, student->number");
     return 0;
 }

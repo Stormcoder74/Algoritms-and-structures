@@ -9,6 +9,8 @@
 /cygdrive/c/Users/Stormcoder/Documents/Java/GeekBrains/Algoritms/lesson_07/main.c
 stdio.h
 -
+malloc.h
+-
 stdlib.h
 -
 

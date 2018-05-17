@@ -1,114 +1,90 @@
 #include <stdio.h>
+#include <malloc.h>
 #include <stdlib.h>
+#define MAX 1000000
 
-const int N = 5;
-const char *filename = "data.txt";
-const int MaxInt = 20000000;
+enum Status {
+    NONE, VISITED
+};
+typedef enum Status Status;
 
-int load(int W[N][N]) {
-    FILE *file = fopen(filename, "r");
+typedef struct Vertex {
+    char name;      // имя вершины
+    Status status;  // состояние
+    int pathLenght; // длина пути к ней
+} Vertex;
+
+// поиск среди непосещенных вершины с минимальным путем
+// возвращаем индекс вершины или -1 в случае отсутствия таковых
+int minVertex(Vertex *vertexes, int size) {
+    int min = MAX;
+    int index = -1;
+    for (int i = 0; i < size; i++) {
+        if ((vertexes + i)->status == NONE &&
+            (vertexes + i)->pathLenght < min) {
+            min = (vertexes + i)->pathLenght;
+            index = i;
+        }
+    }
+    return index;
+}
+
+// вывод результатов
+void printVertexes(Vertex *vertexes, int size) {
+    for (int i = 0; i < size; i++) {
+//        char *st = "VISITED";   // отладочная информация
+//        if ((vertexes + i)->status == NONE) st = "NONE";
+//        printf("%c(%d)(%s), ", (vertexes + i)->name, (vertexes + i)->pathLenght, st);
+        printf("%c(%d), ", (vertexes + i)->name, (vertexes + i)->pathLenght);
+    }
+    printf("\n\n");
+}
+
+int main() {
+    FILE *file = fopen("data2.txt", "r");    // открываем файл
     if (file == NULL) {
-        printf("Can't open file");
+        puts("Can't open file!");
         exit(1);
     }
-    for (int i = 0; i < N; i++)
-        for (int j = 0; j < N; j++) {
-            int a;
-            fscanf(file, "%d", &a);
-            if (a == 0)
-                W[i][j] = MaxInt;
-            else
-                W[i][j] = a;
+    int size = 0;
+    fscanf(file, "%d", &size); // читаем количество вершин
+    Vertex *vertexes = (Vertex *) malloc(size * sizeof(Vertex));// создаем массив вершин
+    int *graph = (int *) malloc(size * size * sizeof(int)); // создаем матрицу смежности
+    char name = 'A';    // инициализация массива вершин
+    for (int i = 0; i < size; ++i) {
+        (vertexes + i)->name = name + i;
+        (vertexes + i)->status = NONE;
+        (vertexes + i)->pathLenght = MAX;
+    }
+    for (int i = 0; i < size; i++) {        // чтение из файла матрицы смежности
+        for (int j = 0; j < size; j++) {
+            int tmp;
+            fscanf(file, "%d", &tmp);
+            if (tmp == 0) *(graph + i * size + j) = MAX;
+            else *(graph + i * size + j) = tmp;
         }
+    }
     fclose(file);
-    return 0;
-}
 
-void printMatrix(int W[N][N]) {
-    printf("%s", " ");
-    for (int i = 0; i < N; i++)
-        printf("%c(%d) ", 65 + i, i);
-    printf("\n");
-    for (int i = 0; i < N; i++) {
-        printf("%c(%d)", 65 + i, i);
-        for (int j = 0; j < N; j++)
-            printf("%5d", (W[i][j] == MaxInt) ? 0 : W[i][j]);
-        printf("\n");
-    }
-}
+    char start = 'G';   // определяем начальную вершину
+    printf("Начинаем с вершины %c\n", start);
+    int current = start - 'A';  // назначаем ее текущей
 
-void printInfo(int P[N], int R[N]) {
-    printf("P:\n");
-    for (int i = 0; i < N; i++)
-        printf("%c(%d) %c(%d)\n", P[i] + 65, P[i], i + 65, i);
-    printf("R:\n");
-    for (int i = 0; i < N; i++)
-        printf("%c%10d\n", i + 65, R[i]);
-}
-
-void FloydWarshal(int W[N][N]) {
-    for (int k = 0; k < N; k++)
-        for (int i = 0; i < N; i++)
-            for (int j = 0; j < N; j++)
-                if (W[i][k] + W[k][j] < W[i][j])
-                    W[i][j] = W[i][k] + W[k][j];
-}
-
-int main(int argc, char *argv[]) {
-    int W[N][N]; // Весовая матрица
-    load(W);
-    int active[N]; // состояния вершин (просмотрена или не просмотрена)
-    int Route[N], Peak[N];
-    int i, j, min, kMin;
-// В начале программы присваиваем начальные значения,
-// Если =1 то вершина еще не просмотрена
-    for (i = 0; i < N; i++) {
-        Route[i] = W[0][i];
-        Peak[i] = 0;
-    }
-// сразу помечаем, что вершина A(0) просмотрена,
-// с нее начинается маршрут
-    active[0] = 0;
-    for (i = 0; i < N - 1; i++) {
-// среди активных вершин
-// ищем вершину с минимальным соответствующим значением в массиве
-// R и проверяем, не лучше ли ехать через нее:
-        system("cls");
-        printMatrix(W);
-        printInfo(Peak, Route);
-// system("pause");
-        min = MaxInt;
-        for (j = 0; j < N; j++)
-            if (active[j] == 1 && Route[j] < min) {
-                min = Route[j]; // Минимальный маршрут
-                kMin = j; // Номер вершины с минимальным маршрутом
+    // собственно алгоритм
+    (vertexes + current)->pathLenght = 0;           // путь до начала - 0
+    while (current >= 0) {                          // пока есть непосещенные
+        (vertexes + current)->status = VISITED;     // текущую отмечаем как посещенную
+        for (int i = 0; i < size; i++) {            // перебираем элементы строки текущей вершины в матрице
+            int tmpLenght = (vertexes + current)->pathLenght + *(graph + current * size + i);   // считаем расстояние до других вершин
+            // несмежные вершины считаем тоже, но т.к. расстояние до них существенно велико они не пройдут следующую проверку
+            if (tmpLenght < (vertexes + i)->pathLenght) {   // а до тех, которые пройдут
+                (vertexes + i)->pathLenght = tmpLenght;     // мы нашли более короткий путь
             }
-        active[kMin] = 0; // Просмотрели эту точку
-// Проверка маршрут через вершину kMin
-// Есть ли путь, более короткий
-        for (j = 0; j < N; j++)
-// Если текущий путь в вершину J (R[j],
-// больше чем путь из найденной вершины(R[kMin]+
-// путь из этой вершины W[kMin][j], то
-            if (Route[j] > Route[kMin] + W[j][kMin] &&
-                W[j][kMin] != MaxInt && active[j] == 1) {
-// мы запоминаем новое расстояние
-                Route[j] = Route[kMin] + W[j][kMin];
-// и запоминаем, что можем добраться туда более
-// коротким путем в массиве P
-                Peak[j] = kMin;
-                printMatrix(W);
-                printInfo(Peak, Route);
-            }
+        }                                       // далее ищем самую близкую вершину, одновременно проверяя наличие непосещенных
+        current = minVertex(vertexes, size);
+//        printVertexes(vertexes, size);        // отладочная информация
     }
-    i = N - 1;
-    while (i != 0) {
-        printf("%c ", i + 65);
-        i = Peak[i];
-    }
-    printf("A");
-    FloydWarshal(W);
-    printf("\n");
-    printMatrix(W);
+
+    printVertexes(vertexes, size);
     return 0;
 }

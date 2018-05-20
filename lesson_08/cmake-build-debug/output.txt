@@ -1,5 +1,5 @@
 Number of elements: 200
-Number of compares: 6424
+Number of compares: 19800
 n^2 = 40000
 n*log(n) = 1059
 Sorted Array:

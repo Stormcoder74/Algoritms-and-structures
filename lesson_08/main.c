@@ -1,43 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
-void Swap(int *, int *);
-int HeapSort(int *, int);
-int ShellSort(int *, int);
+void swap(int *, int *);
 
-const int MAX = 1024;
+int piramidalSort(int *, int);
+
+int shellSort(int *, int);
+
+int quickSort(int *, int, int);
+
+const int LENGHT = 10000;
+const int MAX_VALUE = 5000;
 
 int main(void) {
-    int *array, amountCompare, lenght;
-    FILE *fin, *fout;
-    fin = fopen("input.txt", "r");
+    int *array, amountCompare;
+
+    array = (int *) malloc(LENGHT * sizeof(int)); // выделяем память
+    for (int i = 0; i < LENGHT; i++) {
+        array[i] = (int) random() % MAX_VALUE;
+    }
+
+//    amountCompare = piramidalSort(array, LENGHT); // количество сравнений в пирамидальной сортировке
+//    amountCompare = shellSort(array, LENGHT); // количество сравнений в сортировке Шелла
+    amountCompare = quickSort(array, 0, LENGHT); // количество сравнений в сортировке Хоара
+
+    FILE *fout;
     fout = fopen("output.txt", "w");
 
-    array = (int *) malloc(MAX * sizeof(int)); // выделяем память
-    int j = 0;
-    while (fscanf(fin, "%d", &array[j]) == 1)
-        j++;
-
-    lenght = j;
-//    amountCompare = HeapSort(array, lenght); // количество сравнений
-    amountCompare = ShellSort(array, lenght); // количество сравнений
-
-    fprintf(fout, "Number of elements: %d\nNumber of compares: %d\n", lenght, amountCompare);
-    fprintf(fout, "n^2 = %d\nn*log(n) = %d\n",
-            lenght * lenght, (int) (lenght * log(lenght) / log(exp(1))));
+    fprintf(fout, "Number of elements: %d\nNumber of compares: %d\n", LENGHT, amountCompare);
     fprintf(fout, "Sorted Array:\n");
 
-    for (int i = 0; i < lenght; i++)
+    for (int i = 0; i < LENGHT; i++)
         fprintf(fout, "%d ", array[i]);
 
     free(array);
-    fclose(fin);
     fclose(fout);
     return 0;
 }
 
-void Swap(int *item1, int *item2) {
+void swap(int *item1, int *item2) {
     int buf;
     buf = *item1;
     *item1 = *item2;
@@ -45,37 +46,64 @@ void Swap(int *item1, int *item2) {
 }
 
 // Пирамидальная сортировка
-int HeapSort(int *arr, int lenght) {
+int piramidalSort(int *arr, int lenght) {
     int mid, last = lenght - 1, amountComp = 0;
     while (last > 0) {
-        mid = last / 2; // теперь на последнем месте стоит максимальный элемент, его больше не трогаем
-        for (int i = mid; i >= 1; i--) { // и проходимся по коротким ветвям
+        mid = last / 2;
+        for (int i = mid; i >= 1; i--) {
             if (arr[i - 1] < arr[2 * i - 1])
-                Swap(&arr[i - 1], &arr[2 * i - 1]);
+                swap(&arr[i - 1], &arr[2 * i - 1]);
             if (2 * i < lenght && arr[i - 1] < arr[2 * i])
-                Swap(&arr[i - 1], &arr[2 * i]);
+                swap(&arr[i - 1], &arr[2 * i]);
         }
         amountComp += 2 * mid;
-        Swap(&arr[0], &arr[last]);
+        swap(&arr[0], &arr[last]);
         last--;
     }
     return amountComp;
 }
 
 // Сортировка Шелла
-int ShellSort(int *arr, int lenght) {
-    int mid, last = lenght - 1, amountComp = 0;
-    while (last > 0) {
-        mid = last / 2; // теперь на последнем месте стоит максимальный элемент, его больше не трогаем
-        for (int i = mid; i >= 1; i--) { // и проходимся по коротким ветвям
-            if (arr[i - 1] < arr[2 * i - 1])
-                Swap(&arr[i - 1], &arr[2 * i - 1]);
-            if (2 * i < lenght && arr[i - 1] < arr[2 * i])
-                Swap(&arr[i - 1], &arr[2 * i]);
+int shellSort(int *arr, int lenght) {
+    int amountComp = 0;
+    for (int dist = lenght / 2; dist > 0; dist /= 2)
+        for (int i = 0; i + dist < lenght; i++) {
+            int tmp = arr[i + dist];
+            for (int j = i; j >= 0; j -= dist) {
+                amountComp++;
+                if (tmp < arr[j]) {
+                    arr[j + dist] = arr[j];
+                } else
+                    break;
+                arr[j] = tmp;
+            }
         }
-        amountComp += 2 * mid;
-        Swap(&arr[0], &arr[last]);
-        last--;
-    }
+    return amountComp;
+}
+
+// сортировка Хоара
+int quickSort(int *array, int first, int last) {
+    int i = first, j = last, base = array[(first + last) / 2], amountComp = 0;
+    do {
+        while (array[i] < base) {
+            amountComp++;
+            i++;
+        }
+        while (array[j] > base) {
+            amountComp++;
+            j--;
+        }
+        if (i <= j) {
+            if (array[i] > array[j])
+                swap(&array[i], &array[j]);
+            amountComp++;
+            i++;
+            j--;
+        }
+    } while (i <= j);
+    if (i < last)
+        amountComp += quickSort(array, i, last);
+    if (first < j)
+        amountComp += quickSort(array, first, j);
     return amountComp;
 }
